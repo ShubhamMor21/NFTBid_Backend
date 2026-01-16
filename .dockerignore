@@ -11,8 +11,9 @@ README.md
 test
 coverage
 .vscode
-.prettierrc
-eslint.config.mjs
-nest-cli.json
-tsconfig.build.json
-tsconfig.json
+# Config files needed for build
+# .prettierrc
+# eslint.config.mjs
+# nest-cli.json
+# tsconfig.build.json
+# tsconfig.json
