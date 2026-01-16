@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: nft_bid_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: nft_bid
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - nft_bid_network
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: nft_bid_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - '8080:80'
+    depends_on:
+      - mysql
+    networks:
+      - nft_bid_network
+
+  redis:
+    image: redis:7
+    container_name: nft_bid_redis
+    ports:
+      - '6379:6379'
+    networks:
+      - nft_bid_network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: nft_bid_rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672' # Management UI
+    networks:
+      - nft_bid_network
+
+  api:
+    build: .
+    container_name: nft_bid_api
+    ports:
+      - '3000:3000'
+      - '3001:3001' # WebSocket port
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASS=password
+      - DB_NAME=nft_bid
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=change_me_in_production
+      - JWT_EXPIRATION=1d
+    depends_on:
+      - mysql
+      - redis
+      - rabbitmq
+    networks:
+      - nft_bid_network
+
+volumes:
+  mysql_data:
+
+networks:
+  nft_bid_network:
+    driver: bridge
