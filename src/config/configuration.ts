@@ -20,4 +20,19 @@ export default () => ({
         secret: process.env.JWT_SECRET,
         expiration: process.env.JWT_EXPIRATION,
     },
+    siteName: process.env.SITE_NAME || 'NFT Bid Marketplace',
+    websocket: {
+        port: parseInt(process.env.SOCKET_PORT || '3001', 10),
+    },
+    sendgrid: {
+        apiKey: process.env.SENDGRID_API_KEY,
+        fromEmail: process.env.SENDGRID_FROM_EMAIL,
+    },
+    aws: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        region: process.env.AWS_REGION || 'ap-south-1',
+        bucket: process.env.AWS_S3_BUCKET_NAME,
+    },
+    project: process.env.PROJECT || 'NFT_BID',
 });
