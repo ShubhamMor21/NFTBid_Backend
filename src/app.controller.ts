@@ -12,4 +12,10 @@ export class AppController {
     const result = this.appService.getHello();
     return successResponse("Status OK", result, res);
   }
+
+  @Get('health')
+  getHealth(@Res() res: Response) {
+    const result = this.appService.getHealthStatus();
+    return successResponse("Health check successful", result, res);
+  }
 }
