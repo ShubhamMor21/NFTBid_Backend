@@ -55,9 +55,9 @@ services:
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASS=password
-      - DB_NAME=nft_bid
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+      - DB_DATABASE=nft_bid
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=password

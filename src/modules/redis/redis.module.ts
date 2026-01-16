@@ -11,9 +11,9 @@ import { RedisService } from './redis.service';
             provide: 'REDIS_CLIENT',
             useFactory: (configService: ConfigService) => {
                 return new Redis({
-                    host: configService.get<string>('REDIS_HOST') || 'localhost',
-                    port: configService.get<number>('REDIS_PORT') || 6379,
-                    password: configService.get<string>('REDIS_PASSWORD'),
+                    host: configService.get<string>('redis.host'),
+                    port: configService.get<number>('redis.port'),
+                    password: configService.get<string>('redis.password'),
                 });
             },
             inject: [ConfigService],
