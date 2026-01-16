@@ -13,7 +13,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  app.enableCors();
+  app.enableCors({ origin: '*' });
   app.setGlobalPrefix('api/v1');
 
   const port = process.env.PORT || 3000;
