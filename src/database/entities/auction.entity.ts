@@ -38,8 +38,8 @@ export class Auction {
     @Column({ type: 'decimal', precision: 18, scale: 8, nullable: true })
     highest_bid: number;
 
-    @Column({ nullable: true })
-    highest_bidder: string;
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    highest_bidder: string | null;
 
     @Column({
         type: 'enum',

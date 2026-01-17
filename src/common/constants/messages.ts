@@ -11,7 +11,7 @@ export const MESSAGES = {
         ACCOUNT_BLOCKED: 'Your account has been blocked by an administrator. Please contact admin to unblock.',
     },
     AUCTION: {
-        CREATED: 'Auction created successfully.',
+        CREATED: 'Auction record created',
         NOT_FOUND: 'Auction not found.',
         NOT_ACTIVE: 'Auction is not active.',
         INVALID_PRICE: 'Invalid auction price parameters.',

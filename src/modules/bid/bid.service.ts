@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Bid } from '../../database/entities/bid.entity';
 import { Auction } from '../../database/entities/auction.entity';
+import { Nft } from '../../database/entities/nft.entity';
 import { User } from '../../database/entities/user.entity';
 import { Wallet } from '../../database/entities/wallet.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
@@ -20,6 +21,8 @@ export class BidsService {
         private readonly bidRepository: Repository<Bid>,
         @InjectRepository(Auction)
         private readonly auctionRepository: Repository<Auction>,
+        @InjectRepository(Nft)
+        private readonly nftRepository: Repository<Nft>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         @InjectRepository(Wallet)
@@ -146,6 +149,85 @@ export class BidsService {
         } catch (error) {
             console.error('getBidsByAuction error:', error);
             throw new InternalServerErrorException(MESSAGES.GENERAL.INTERNAL_ERROR);
+        }
+    }
+
+    /**
+     * Handle on-chain BidPlaced event.
+     */
+    async handleOnChainBid(tokenId: string, bidderWallet: string, amount: number, txHash: string) {
+        try {
+            // 1. Find the NFT to get the Auction
+            const walletLower = bidderWallet.toLowerCase();
+            const nft = await this.nftRepository.findOne({ where: { token_id: tokenId } });
+            if (!nft) {
+                console.warn(`NFT with token_id ${tokenId} not found during BidPlaced event.`);
+                return;
+            }
+
+            const auction = await this.auctionRepository.findOne({
+                where: { nftId: nft.id, status: AuctionStatus.ACTIVE },
+            });
+
+            if (!auction) {
+                console.warn(`No active auction found for NFT ${nft.id} during BidPlaced event.`);
+                return;
+            }
+
+            const previousHighestBidder = auction.highest_bidder;
+
+            // 2. Look up the user by wallet address if possible
+            const walletRecord = await this.walletRepository.findOne({ where: { walletAddress: walletLower } });
+            const bidderId = walletRecord ? walletRecord.userId : 'SYSTEM';
+
+            // 3. Record Bid
+            const bid = this.bidRepository.create({
+                auctionId: auction.id,
+                bidderId: bidderId,
+                bidderWallet: walletLower,
+                bidAmount: amount,
+                tx_hash: txHash,
+            });
+
+            await this.bidRepository.save(bid);
+
+            // 4. Update Highest Bid in Auction
+            auction.highest_bid = amount;
+            auction.highest_bidder = walletLower;
+            await this.auctionRepository.save(auction);
+
+            // 5. Broadcast Real-time Update
+            this.websocketGateway.emitBidPlaced({
+                auctionId: auction.id,
+                bidder: walletLower,
+                amount: amount,
+            });
+
+            // 6. Invalidate Caches
+            await this.redisService.del(`auction:${auction.id}`);
+            await this.redisService.del('auctions:active');
+
+            // 7. Notify Outbid User
+            if (previousHighestBidder && previousHighestBidder.toLowerCase() !== walletLower) {
+                await this.notificationsService.createNotification(
+                    previousHighestBidder,
+                    'Outbid!',
+                    `You have been outbid on auction for Token ${tokenId}. New bid: ${amount}`,
+                    NotificationType.OUTBID,
+                );
+            }
+
+            // 8. Notify Seller
+            await this.notificationsService.createNotification(
+                auction.sellerWallet,
+                'New Bid',
+                `A new bid of ${amount} has been placed on your auction for Token ${tokenId}.`,
+                NotificationType.SYSTEM_ALERT,
+            );
+
+            console.log(`Successfully synced on-chain BidPlaced for Token ${tokenId}`);
+        } catch (error) {
+            console.error(`handleOnChainBid error for ${tokenId}:`, error);
         }
     }
 }

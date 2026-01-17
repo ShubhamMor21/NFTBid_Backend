@@ -5,6 +5,9 @@ import { CronService } from './cron.service';
 import { Auction } from '../../database/entities/auction.entity';
 import { WebsocketModule } from '../websocket/websocket.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { AuctionsModule } from '../auctions/auctions.module';
+import { NftsModule } from '../nfts/nfts.module';
+import { TransactionsModule } from '../transactions/transactions.module';
 
 @Module({
     imports: [
@@ -12,6 +15,9 @@ import { NotificationsModule } from '../notifications/notifications.module';
         ScheduleModule.forRoot(),
         WebsocketModule,
         NotificationsModule,
+        AuctionsModule,
+        NftsModule,
+        TransactionsModule,
     ],
     providers: [CronService],
 })

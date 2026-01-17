@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, DeleteDateColumn } from 'typeorm';
 import { Auction } from './auction.entity';
 
 @Entity('nfts')
@@ -24,6 +24,12 @@ export class Nft {
     @Column({ type: 'text', nullable: true })
     metadata_url: string;
 
+    @Column({ nullable: true })
+    name: string;
+
+    @Column({ type: 'text', nullable: true })
+    description: string;
+
     @Column({ type: 'text', nullable: true })
     image_url: string;
 
@@ -38,4 +44,7 @@ export class Nft {
 
     @UpdateDateColumn()
     updated_at: Date;
+
+    @DeleteDateColumn()
+    deleted_at: Date;
 }

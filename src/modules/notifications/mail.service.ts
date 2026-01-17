@@ -22,6 +22,13 @@ export class MailService {
      * Send an email using a basic HTML template.
      */
     async sendEmail(to: string, subject: string, message: string) {
+        const sendEmailToggle = this.configService.get<string>('SEND_EMAIL');
+
+        if (sendEmailToggle !== 'true') {
+            this.logger.log(`Email sending is disabled (SEND_EMAIL=${sendEmailToggle}). Skipping email to ${to}.`);
+            return;
+        }
+
         const from = this.configService.get<string>('SENDGRID_FROM_EMAIL') || 'no-reply@nftbid.com';
         const siteName = this.configService.get<string>('SITE_NAME') || 'NFT Bid Marketplace';
 

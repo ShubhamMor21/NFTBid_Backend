@@ -4,6 +4,9 @@ export enum TransactionType {
     BID = 'BID',
     AUCTION_CREATE = 'AUCTION_CREATE',
     AUCTION_SETTLE = 'AUCTION_SETTLE',
+    AUCTION_CANCEL = 'AUCTION_CANCEL',
+    AUCTION_END = 'AUCTION_END',
+    MINT = 'MINT',
     REFUND = 'REFUND',
 }
 
@@ -37,11 +40,14 @@ export class Transaction {
     })
     status: TransactionStatus;
 
-    @Column({ type: 'decimal', precision: 18, scale: 8 })
+    @Column({ type: 'decimal', precision: 18, scale: 8, default: 0 })
     amount: number;
 
-    @Column({ type: 'int' })
+    @Column({ type: 'int', default: 0 })
     chain_id: number;
+
+    @Column({ type: 'json', nullable: true })
+    metadata: any;
 
     @CreateDateColumn()
     created_at: Date;

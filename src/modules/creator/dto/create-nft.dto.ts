@@ -17,6 +17,14 @@ export class CreateNftDto {
     @IsNotEmpty()
     metadata_url: string;
 
+    @IsString()
+    @IsNotEmpty()
+    name: string;
+
+    @IsString()
+    @IsOptional()
+    description: string;
+
     @IsUrl()
     @IsNotEmpty()
     image_url: string;

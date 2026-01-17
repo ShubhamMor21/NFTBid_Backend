@@ -35,4 +35,8 @@ export default () => ({
         bucket: process.env.AWS_S3_BUCKET_NAME,
     },
     project: process.env.PROJECT || 'NFT_BID',
+    blockchain: {
+        rpcUrl: process.env.RPC_URL,
+        nftContractAddress: process.env.NFT_CONTRACT_ADDRESS,
+    },
 });

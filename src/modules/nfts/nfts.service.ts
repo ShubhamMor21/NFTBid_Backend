@@ -68,4 +68,30 @@ export class NftsService {
             throw new InternalServerErrorException(MESSAGES.GENERAL.INTERNAL_ERROR);
         }
     }
+
+    /**
+     * Update NFT owner by Token ID (On-chain ID).
+     */
+    async updateOwner(tokenId: string, newOwner: string): Promise<Nft | null> {
+        try {
+            const nft = await this.nftRepository.findOne({ where: { token_id: tokenId } });
+            if (!nft) {
+                console.warn(`NFT with token_id ${tokenId} not found in DB during Mint event.`);
+                return null;
+            }
+
+            nft.current_owner_wallet = newOwner.toLowerCase();
+            nft.is_listed = false;
+
+            const savedNft = await this.nftRepository.save(nft);
+
+            // Invalidate cache
+            await this.redisService.del(`nft:${nft.id}`);
+
+            return savedNft;
+        } catch (error) {
+            console.error('NftsService.updateOwner error:', error);
+            throw new InternalServerErrorException(MESSAGES.GENERAL.INTERNAL_ERROR);
+        }
+    }
 }

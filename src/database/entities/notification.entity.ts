@@ -6,6 +6,7 @@ export enum NotificationType {
     AUCTION_ENDED = 'AUCTION_ENDED',
     LOGIN = 'LOGIN',
     PROFILE_UPDATE = 'PROFILE_UPDATE',
+    SYSTEM_ALERT = 'SYSTEM_ALERT',
 }
 
 @Entity('notifications')
