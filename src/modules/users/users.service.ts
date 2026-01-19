@@ -15,6 +15,7 @@ import { RedisService } from '../redis/redis.service';
 import { MyBidsQueryDto, BidStatus } from './dto/my-bids-query.dto';
 import { AuctionStatus } from '../../common/enums/auction-status.enum';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
+import { In } from 'typeorm';
 
 @Injectable()
 export class UsersService {
@@ -316,6 +317,37 @@ export class UsersService {
             return { items, total, page, limit, activeBids, winningBids, outbidBids };
         } catch (error) {
             console.error('getMyBids error:', error);
+            throw new InternalServerErrorException(MESSAGES.GENERAL.INTERNAL_ERROR);
+        }
+    }
+
+    /**
+     * Get all NFTs owned by the current user across all their wallets.
+     */
+    async getMyNfts(userId: string): Promise<Nft[]> {
+        try {
+            // 1. Get all wallet addresses for the user
+            const wallets = await this.walletRepository.find({
+                where: { user: { id: userId } },
+                select: ['walletAddress']
+            });
+
+            if (wallets.length === 0) {
+                return [];
+            }
+
+            const walletAddresses = wallets.map(w => w.walletAddress);
+
+            // 2. Fetch NFTs owned by these wallets
+            const nfts = await this.nftRepository.find({
+                where: { current_owner_wallet: In(walletAddresses) },
+                relations: ['auctions'],
+                order: { created_at: 'DESC' }
+            });
+
+            return nfts;
+        } catch (error) {
+            console.error('getMyNfts error:', error);
             throw new InternalServerErrorException(MESSAGES.GENERAL.INTERNAL_ERROR);
         }
     }

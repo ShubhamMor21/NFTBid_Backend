@@ -502,14 +502,23 @@ export class AuctionsService {
     /**
      * Dashboard: Statistics and Paginated List with search/filter.
      */
-    async getAuctionsDashboard(query: GetAuctionsDto) {
+    async getAuctionsDashboard(creatorId: string, query: GetAuctionsDto) {
         try {
             const { page = 1, limit = 10, search, status, startTime, endTime } = query;
             const skip = (page - 1) * limit;
 
-            // 1. Calculate Stats (Global)
-            const activeCount = await this.auctionRepository.count({ where: { status: AuctionStatus.ACTIVE } });
-            const totalBids = await this.bidRepository.count();
+            // 1. Calculate Stats (Filtered by Creator)
+            const activeCount = await this.auctionRepository.count({
+                where: {
+                    status: AuctionStatus.ACTIVE,
+                    sellerId: creatorId
+                }
+            });
+            const totalBids = await this.bidRepository.count({
+                where: {
+                    auction: { sellerId: creatorId }
+                }
+            });
 
             // Volume = sum of all winning bids (SETTLED or ENDED with winner)
             const volumeResult = await this.auctionRepository
@@ -517,6 +526,7 @@ export class AuctionsService {
                 .select('SUM(auction.highest_bid)', 'total')
                 .where('auction.status IN (:...statuses)', { statuses: [AuctionStatus.SETTLED, AuctionStatus.ENDED] })
                 .andWhere('auction.highest_bidder IS NOT NULL')
+                .andWhere('auction.sellerId = :creatorId', { creatorId })
                 .getRawOne();
 
             const totalVolume = parseFloat(volumeResult?.total || '0');
@@ -524,6 +534,7 @@ export class AuctionsService {
             // 2. Fetch Paginated & Filtered List
             const queryBuilder = this.auctionRepository.createQueryBuilder('auction')
                 .leftJoinAndSelect('auction.nft', 'nft')
+                .where('auction.sellerId = :creatorId', { creatorId })
                 .skip(skip)
                 .take(limit)
                 .orderBy('auction.created_at', 'DESC');

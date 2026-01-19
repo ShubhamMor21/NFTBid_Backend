@@ -138,6 +138,21 @@ export class UsersController {
     }
 
     /**
+     * GET /users/me/nfts
+     * Get all NFTs owned by the current user.
+     */
+    @UseGuards(JwtAuthGuard)
+    @Get('me/nfts')
+    async getMyNfts(@Req() req: any, @Res() res: Response) {
+        try {
+            const nfts = await this.usersService.getMyNfts(req.user.userId);
+            return successResponse('User NFTs fetched successfully', nfts, res);
+        } catch (error) {
+            return failResponse(true, error.message, res);
+        }
+    }
+
+    /**
      * PATCH /users/:id/block
      * Admin/Logic to block/unblock users.
      */

@@ -144,9 +144,11 @@ export class AuctionsController {
      * Get auction dashboard with stats and filtered list.
      */
     @Get('dashboard/all')
-    async findDashboard(@Query() query: GetAuctionsDto, @Res() res: Response) {
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.CREATOR, UserRole.ADMIN)
+    async findDashboard(@Req() req: any, @Query() query: GetAuctionsDto, @Res() res: Response) {
         try {
-            const data = await this.auctionsService.getAuctionsDashboard(query);
+            const data = await this.auctionsService.getAuctionsDashboard(req.user.userId, query);
             return successResponse('Auction dashboard fetched successfully.', data, res);
         } catch (error) {
             return failResponse(true, error.message, res);
